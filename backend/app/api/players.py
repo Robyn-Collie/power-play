@@ -17,7 +17,8 @@ async def search_players(name: str):
 @router.get("/{player_id}/stats")
 async def get_player_stats(player_id: int):
     try:
-        url = f"{settings.MLB_API_BASE_URL}/people/{player_id}?hydrate=stats(group=[hitting,pitching],type=[season])"
+        # Fetch current season AND year-by-year history for analytics
+        url = f"{settings.MLB_API_BASE_URL}/people/{player_id}?hydrate=stats(group=[hitting,pitching],type=[season,yearByYear])"
         response = requests.get(url)
         response.raise_for_status()
         return response.json()
