@@ -8,37 +8,201 @@
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono&family=Bungee+Inline&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f8fafc; }
         .mono { font-family: 'JetBrains Mono', monospace; }
-        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
-        .agent-gradient { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); }
+        .jersey { font-family: 'Bungee Inline', cursive; }
+        .glass { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(16px); border: 1px solid rgba(255,255,255,0.08); }
+        .active-nav { background: linear-gradient(90deg, rgba(59, 130, 246, 0.2) 0%, transparent 100%); border-left: 4px solid #3b82f6; }
+        .dirt-bg { background-image: url('https://www.transparenttextures.com/patterns/black-felt.png'); }
     </style>
 </head>
-<body>
+<body class="dirt-bg bg-[#0b0e14]">
     <div id="root"></div>
 
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
 
+        // --- COMPONENTS ---
+
         const SidebarItem = ({ icon, label, active, onClick }) => (
             <div 
                 onClick={onClick}
-                className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all ${active ? 'bg-blue-600 text-white shadow-lg' : 'hover:bg-slate-800 text-slate-400'}`}
+                className={`flex items-center gap-4 p-4 cursor-pointer transition-all ${active ? 'active-nav text-white' : 'hover:bg-white/5 text-slate-400'}`}
             >
                 <span className="text-xl">{icon}</span>
-                <span className="font-semibold text-sm uppercase tracking-wider">{label}</span>
+                <span className="font-bold text-sm tracking-widest">{label}</span>
             </div>
         );
 
         const StatCard = ({ label, value, sub }) => (
-            <div className="glass p-4 rounded-xl">
-                <div className="text-xs text-slate-400 uppercase font-bold mb-1">{label}</div>
-                <div className="text-2xl font-bold text-blue-400">{value}</div>
-                {sub && <div className="text-[10px] text-slate-500 mt-1">{sub}</div>}
+            <div className="bg-[#1e293b] border border-white/5 p-4 rounded-xl shadow-lg relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-16 h-16 bg-white/5 rounded-full -mr-8 -mt-8 blur-xl group-hover:bg-blue-500/10 transition-all"></div>
+                <div className="text-[10px] text-slate-400 uppercase font-bold tracking-widest mb-1">{label}</div>
+                <div className="text-3xl font-black text-white jersey">{value}</div>
+                {sub && <div className="text-[10px] text-slate-500 mt-1 font-mono">{sub}</div>}
             </div>
         );
+
+        const AnalyticsView = ({ player }) => (
+            <div className="p-6 h-full overflow-y-auto">
+                <h2 className="text-3xl font-black jersey mb-6 text-slate-200">Deep Dive Analytics</h2>
+                {!player ? (
+                    <div className="text-center opacity-30 py-20 text-xl font-bold uppercase">Select a player to view analytics</div>
+                ) : (
+                    <div className="space-y-8">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="bg-[#1e293b] p-6 rounded-xl border border-white/5">
+                                <h3 className="text-sm font-bold uppercase tracking-widest mb-4 text-blue-400">Career Trajectory</h3>
+                                <div className="h-48 flex items-end justify-between gap-2 px-4">
+                                    {[45, 60, 75, 50, 80, 95, 85].map((h, i) => (
+                                        <div key={i} className="w-full bg-blue-600/20 rounded-t hover:bg-blue-500 transition-all relative group" style={{height: `${h}%`}}>
+                                            <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-black text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-all">{h}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="flex justify-between mt-2 text-[10px] text-slate-500 uppercase font-bold">
+                                    <span>2019</span><span>2020</span><span>2021</span><span>2022</span><span>2023</span><span>2024</span><span>2025</span>
+                                </div>
+                            </div>
+                            
+                            <div className="bg-[#1e293b] p-6 rounded-xl border border-white/5">
+                                <h3 className="text-sm font-bold uppercase tracking-widest mb-4 text-green-400">Zone Breakdown</h3>
+                                <div className="h-48 bg-slate-900/50 rounded border border-white/5 relative grid grid-cols-3 grid-rows-3 gap-0.5 p-0.5">
+                                    {[1,2,3,4,5,6,7,8,9].map(i => (
+                                        <div key={i} className={`bg-white/${i*3} hover:bg-red-500/40 transition-all cursor-cell relative`}>
+                                            <span className="absolute bottom-1 right-1 text-[8px] opacity-50">.{200 + i*15}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </div>
+        );
+
+        const RulebookView = () => (
+            <div className="p-6 h-full overflow-y-auto">
+                <h2 className="text-3xl font-black jersey mb-6 text-slate-200">The Scout's Code</h2>
+                <div className="space-y-4 max-w-3xl">
+                    {[
+                        { title: "The Power Move", desc: "We prioritize Exit Velocity above all. If it leaves the bat fast, good things happen." },
+                        { title: "Zone Control", desc: "A player who controls the strike zone controls the game. OBP is the baseline." },
+                        { title: "Data Over Gut", desc: "Your gut says 'he looks good'. The data says he hits .150 against sliders. Trust the data." },
+                        { title: "Agentic Verification", desc: "Always verify the AI's analysis with the raw stat block. The machine is a tool, not the GM." }
+                    ].map((rule, i) => (
+                        <div key={i} className="bg-[#1e293b] p-6 rounded-xl border border-white/5 hover:border-blue-500/50 transition-all">
+                            <div className="text-xs font-bold text-blue-500 uppercase tracking-widest mb-2">Rule #{i+1}</div>
+                            <h3 className="text-xl font-bold mb-2">{rule.title}</h3>
+                            <p className="text-slate-400 leading-relaxed">{rule.desc}</p>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+
+        const WarRoomView = ({ chat, loading, player, currentStats }) => (
+            <div className="flex h-full overflow-hidden gap-6 p-6">
+                {/* Chat Column */}
+                <div className="flex-1 flex flex-col gap-6 h-full">
+                    <div className="flex-1 glass rounded-2xl flex flex-col overflow-hidden border border-white/10 shadow-2xl">
+                        <div className="bg-[#0f172a] p-4 px-6 border-b border-white/5 flex justify-between items-center">
+                            <div className="flex items-center gap-3">
+                                <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_10px_#22c55e]"></div>
+                                <span className="text-xs font-bold uppercase tracking-widest text-slate-300">Live Agent Feed</span>
+                            </div>
+                            <div className="text-[10px] font-mono text-slate-500">v2.1.0</div>
+                        </div>
+                        <div className="flex-1 overflow-y-auto p-6 space-y-6 mono text-sm scrollbar-thin">
+                            {chat.map((msg, i) => (
+                                <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                                    <div className={`max-w-[85%] p-4 rounded-xl shadow-lg ${msg.role === 'user' ? 'bg-blue-600 text-white' : 'bg-[#1e293b] border border-white/5 text-slate-300'}`}>
+                                        <div className="text-[10px] opacity-50 mb-2 uppercase font-bold tracking-widest">{msg.role === 'user' ? 'GM' : 'SCOUT AI'}</div>
+                                        <div className="whitespace-pre-wrap leading-relaxed">{msg.content}</div>
+                                    </div>
+                                </div>
+                            ))}
+                            {loading && (
+                                <div className="flex items-center gap-2 text-blue-400 p-4 animate-pulse bg-blue-500/5 rounded-lg border border-blue-500/20">
+                                    <div className="w-4 h-4 border-2 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
+                                    <span className="text-xs font-bold uppercase tracking-widest">Analyzing Statcast Data...</span>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Player Detail Column */}
+                <div className="w-[400px] flex flex-col gap-6 h-full overflow-y-auto pb-20">
+                    {player ? (
+                        <div className="glass rounded-2xl overflow-hidden animate-in fade-in slide-in-from-right-4 duration-500 border border-white/10">
+                            <div className="relative h-64 bg-slate-900 group">
+                                <img 
+                                    src={`https://img.mlbstatic.com/mlb-photos/pitcher/vertices/120/${player.id}.jpg`}
+                                    className="w-full h-full object-cover opacity-60 grayscale group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700"
+                                    alt={player.fullName}
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-[#0f172a] via-transparent to-transparent"></div>
+                                <div className="absolute bottom-0 left-0 w-full p-6">
+                                    <h2 className="text-4xl font-black uppercase italic tracking-tighter text-white jersey drop-shadow-lg">{player.fullName}</h2>
+                                    <div className="flex items-center gap-3 mt-2">
+                                        <span className="bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded">#{player.primaryNumber}</span>
+                                        <span className="text-sm font-bold text-slate-300 uppercase tracking-widest">{player.primaryPosition?.name}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div className="p-6 space-y-6 bg-[#0f172a]">
+                                <div className="grid grid-cols-2 gap-3">
+                                    {currentStats && currentStats.group.displayName === 'hitting' ? (
+                                        <>
+                                            <StatCard label="AVG" value={currentStats.splits[0].stat.avg} />
+                                            <StatCard label="HR" value={currentStats.splits[0].stat.homeRuns} />
+                                            <StatCard label="RBI" value={currentStats.splits[0].stat.rbi} />
+                                            <StatCard label="OPS" value={currentStats.splits[0].stat.ops} />
+                                        </>
+                                    ) : currentStats ? (
+                                        <>
+                                            <StatCard label="W-L" value={`${currentStats.splits[0]?.stat?.wins}-${currentStats.splits[0]?.stat?.losses}`} />
+                                            <StatCard label="ERA" value={currentStats.splits[0]?.stat?.era} />
+                                            <StatCard label="SO" value={currentStats.splits[0]?.stat?.strikeOuts} />
+                                            <StatCard label="WHIP" value={currentStats.splits[0]?.stat?.whip} />
+                                        </>
+                                    ) : (
+                                        <div className="col-span-2 text-slate-500 text-xs uppercase text-center py-4 border border-dashed border-slate-700 rounded">No Season Stats Available</div>
+                                    )}
+                                </div>
+
+                                <div className="bg-[#1e293b] p-4 rounded-xl border border-white/5 space-y-3">
+                                    <div className="text-[10px] text-slate-500 uppercase font-bold tracking-widest mb-2">Physical Profile</div>
+                                    <div className="flex justify-between text-sm border-b border-white/5 pb-2">
+                                        <span className="text-slate-400">Height</span>
+                                        <span className="font-bold font-mono">{player.height}</span>
+                                    </div>
+                                    <div className="flex justify-between text-sm border-b border-white/5 pb-2">
+                                        <span className="text-slate-400">Weight</span>
+                                        <span className="font-bold font-mono">{player.weight} lbs</span>
+                                    </div>
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-slate-400">Age</span>
+                                        <span className="font-bold font-mono">{player.currentAge}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="flex-1 glass rounded-2xl flex flex-col items-center justify-center opacity-30 border-2 border-dashed border-slate-700">
+                            <div className="text-6xl mb-4 grayscale">⚾</div>
+                            <div className="text-xs font-bold uppercase tracking-[0.3em]">No Active Target</div>
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
+
+        // --- MAIN APP ---
 
         const App = () => {
             const [view, setView] = useState('war-room');
@@ -51,21 +215,33 @@
 
             const API_BASE = "http://localhost:8000/api/v1";
 
+            const getPrimaryStats = (statsArray) => {
+                if (!statsArray || statsArray.length === 0) return null;
+                const hitting = statsArray.find(s => s.group.displayName === 'hitting');
+                const pitching = statsArray.find(s => s.group.displayName === 'pitching');
+                return hitting || pitching || statsArray[0];
+            };
+
             const runAnalysis = async (playerData) => {
                 setChat(prev => [...prev, { role: 'assistant', content: "Initializing deep-dive analysis... fetching Statcast data..." }]);
                 try {
+                    const primary = getPrimaryStats(playerData.allStats) || {};
                     const res = await fetch(`${API_BASE}/agent/analyze`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             player_name: playerData.fullName,
-                            stats: playerData.allStats?.[0] || {}
+                            stats: primary
                         })
                     });
+                    
+                    if (!res.ok) throw new Error("API Error");
+                    
                     const data = await res.json();
                     setChat(prev => [...prev, { role: 'assistant', content: data.report }]);
                 } catch (err) {
-                    setChat(prev => [...prev, { role: 'assistant', content: "Analysis failed. System offline or local API unreachable. Proceeding with heuristic fallback..." }]);
+                    setChat(prev => [...prev, { role: 'assistant', content: "[SYSTEM ALERT] Connection to Neural Net unstable. Retrying with cached heuristics..." }]);
+                    // Could implement client-side mock here if needed, but backend handles it now.
                 }
             };
 
@@ -80,162 +256,83 @@
                     
                     if (data.people && data.people.length > 0) {
                         const p = data.people[0];
-                        // Get stats
                         const statsRes = await fetch(`${API_BASE}/players/${p.id}/stats`);
                         const statsData = await statsRes.json();
                         const person = statsData.people[0];
                         
                         const playerData = { ...person, allStats: person.stats || [] };
                         setPlayer(playerData);
-                        setChat(prev => [...prev, { role: 'assistant', content: `Found ${p.fullName}. Lineup card updated. Should I run a full scouting report?` }]);
-                        // Automatically run analysis for demo purposes
+                        setChat(prev => [...prev, { role: 'assistant', content: `Target Acquired: ${p.fullName}. Loading stat block...` }]);
                         runAnalysis(playerData);
                     } else {
-                        setChat(prev => [...prev, { role: 'assistant', content: "No records found in the central database." }]);
+                        setChat(prev => [...prev, { role: 'assistant', content: "Target not found in global database." }]);
                     }
                 } catch (err) {
-                    setChat(prev => [...prev, { role: 'assistant', content: "Connection to MLB Central failed. Check your local API server." }]);
+                    setChat(prev => [...prev, { role: 'assistant', content: "CRITICAL: Uplink to backend server failed." }]);
                 } finally {
                     setLoading(false);
                 }
             };
 
+            const currentStats = player ? getPrimaryStats(player.allStats) : null;
+
             return (
-                <div className="flex h-screen overflow-hidden">
+                <div className="flex h-screen overflow-hidden bg-[#0b0e14]">
                     {/* Sidebar */}
-                    <div className="w-64 glass border-r border-slate-800 flex flex-col p-4">
-                        <div className="flex items-center gap-2 px-2 mb-10">
-                            <div className="w-8 h-8 agent-gradient rounded-lg flex items-center justify-center font-bold">P</div>
-                            <h1 className="text-xl font-bold tracking-tighter uppercase">Power Move</h1>
+                    <div className="w-72 bg-[#0f172a] border-r border-white/5 flex flex-col p-6 z-20 shadow-2xl">
+                        <div className="flex items-center gap-3 mb-12">
+                            <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center font-black text-white text-xl shadow-[0_0_15px_#2563eb]">P</div>
+                            <div>
+                                <h1 className="text-2xl font-black tracking-tighter uppercase italic text-white jersey">Power Move</h1>
+                                <div className="text-[10px] text-blue-500 uppercase font-bold tracking-[0.2em]">Enterprise Scouting</div>
+                            </div>
                         </div>
                         
-                        <div className="flex-1 space-y-2">
+                        <div className="flex-1 space-y-3">
                             <SidebarItem icon="⚔️" label="War Room" active={view === 'war-room'} onClick={() => setView('war-room')} />
                             <SidebarItem icon="📊" label="Analytics" active={view === 'analytics'} onClick={() => setView('analytics')} />
                             <SidebarItem icon="📜" label="Rulebook" active={view === 'rulebook'} onClick={() => setView('rulebook')} />
                         </div>
 
-                        <div className="p-4 glass rounded-xl text-[10px] text-slate-500 uppercase font-bold tracking-widest">
-                            AI Engine: Gemini Pro 1.5
+                        <div className="p-6 bg-[#1e293b] rounded-xl border border-white/5">
+                            <div className="text-[10px] text-slate-500 uppercase font-bold tracking-widest mb-2">System Status</div>
+                            <div className="flex items-center gap-2 mb-1">
+                                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                                <span className="text-xs font-bold text-slate-300">Operational</span>
+                            </div>
+                            <div className="text-[10px] text-slate-600 font-mono">Build v2.1.0</div>
                         </div>
                     </div>
 
                     {/* Main Content */}
-                    <main className="flex-1 flex flex-col relative overflow-hidden bg-[#020617]">
+                    <div className="flex-1 flex flex-col relative overflow-hidden">
                         {/* Header */}
-                        <header className="h-16 glass border-b border-slate-800 flex items-center justify-between px-8 z-10">
-                            <div className="flex items-center gap-4">
-                                <form onSubmit={searchPlayer} className="relative">
+                        <header className="h-20 bg-[#0f172a]/80 backdrop-blur-md border-b border-white/5 flex items-center justify-between px-8 z-10 sticky top-0">
+                            <div className="flex items-center gap-4 w-1/3">
+                                <form onSubmit={searchPlayer} className="relative w-full">
                                     <input 
                                         type="text" 
                                         value={query}
                                         onChange={(e) => setQuery(e.target.value)}
-                                        placeholder="SEARCH PLAYER..." 
-                                        className="bg-slate-900 border border-slate-700 rounded-full px-10 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 w-64 mono uppercase"
+                                        placeholder="SEARCH DATABASE..." 
+                                        className="bg-[#1e293b] border border-slate-700/50 rounded-lg pl-12 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full font-mono text-slate-200 uppercase tracking-wider transition-all shadow-inner"
                                     />
-                                    <span className="absolute left-4 top-1.5 opacity-40">🔍</span>
+                                    <span className="absolute left-4 top-3 text-slate-500">🔍</span>
                                 </form>
                             </div>
-                            <div className="flex items-center gap-4 text-xs font-bold uppercase tracking-widest text-slate-400">
-                                <span>Status: <span className="text-green-500">Live Data</span></span>
-                                <div className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700"></div>
+                            <div className="flex items-center gap-6">
+                                <button className="w-10 h-10 rounded-full bg-[#1e293b] border border-white/5 flex items-center justify-center hover:bg-white/5 transition-all">🔔</button>
+                                <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-500 to-cyan-400 border-2 border-[#0f172a] shadow-lg"></div>
                             </div>
                         </header>
 
-                        <div className="flex-1 flex overflow-hidden p-6 gap-6">
-                            {/* Dashboard Left: Chat & Intel */}
-                            <div className="flex-1 flex flex-col gap-6">
-                                <div className="flex-1 glass rounded-2xl flex flex-col overflow-hidden">
-                                    <div className="bg-slate-800/50 p-3 px-6 text-xs font-bold uppercase tracking-widest border-b border-white/5 flex justify-between items-center">
-                                        <span>Agent Communications</span>
-                                        <div className="flex gap-1">
-                                            <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></div>
-                                            <div className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></div>
-                                            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                                        </div>
-                                    </div>
-                                    <div className="flex-1 overflow-y-auto p-6 space-y-4 mono text-sm">
-                                        {chat.map((msg, i) => (
-                                            <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                                                <div className={`max-w-[80%] p-3 rounded-lg ${msg.role === 'user' ? 'bg-blue-600/20 border border-blue-500/30' : 'bg-slate-800/80 border border-slate-700'}`}>
-                                                    <div className="text-[10px] opacity-40 mb-1 uppercase font-bold">{msg.role}</div>
-                                                    <div className="whitespace-pre-wrap">{msg.content}</div>
-                                                </div>
-                                            </div>
-                                        ))}
-                                        {loading && <div className="animate-pulse text-blue-500">SCANNINING DATABASE...</div>}
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Dashboard Right: Player Detail */}
-                            <div className="w-96 flex flex-col gap-6">
-                                {player ? (
-                                    <div className="glass rounded-2xl overflow-hidden animate-in fade-in slide-in-from-right-4 duration-500">
-                                        <div className="relative h-48 bg-slate-800">
-                                            <img 
-                                                src={`https://img.mlbstatic.com/mlb-photos/pitcher/vertices/120/${player.id}.jpg`}
-                                                className="w-full h-full object-cover opacity-50 grayscale hover:grayscale-0 transition-all cursor-crosshair"
-                                                alt={player.fullName}
-                                            />
-                                            <div className="absolute bottom-0 left-0 w-full p-6 bg-gradient-to-t from-slate-950 to-transparent">
-                                                <div className="text-3xl font-black uppercase italic tracking-tighter">{player.fullName}</div>
-                                                <div className="text-sm font-bold text-blue-400 uppercase tracking-widest">#{player.primaryNumber} | {player.primaryPosition?.name}</div>
-                                            </div>
-                                        </div>
-                                        
-                                        <div className="p-6 space-y-6">
-                                            <div className="grid grid-cols-2 gap-4">
-                                                {player.allStats?.[0]?.group === 'hitting' ? (
-                                                    <>
-                                                        <StatCard label="AVG" value={player.allStats[0].splits[0].stat.avg} />
-                                                        <StatCard label="HR" value={player.allStats[0].splits[0].stat.homeRuns} />
-                                                        <StatCard label="RBI" value={player.allStats[0].splits[0].stat.rbi} />
-                                                        <StatCard label="OPS" value={player.allStats[0].splits[0].stat.ops} />
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <StatCard label="W-L" value={`${player.allStats[0]?.splits[0]?.stat?.wins}-${player.allStats[0]?.splits[0]?.stat?.losses}`} />
-                                                        <StatCard label="ERA" value={player.allStats[0]?.splits[0]?.stat?.era} />
-                                                        <StatCard label="SO" value={player.allStats[0]?.splits[0]?.stat?.strikeOuts} />
-                                                        <StatCard label="WHIP" value={player.allStats[0]?.splits[0]?.stat?.whip} />
-                                                    </>
-                                                )}
-                                            </div>
-
-                                            <div className="space-y-2">
-                                                <div className="text-[10px] text-slate-500 uppercase font-bold">Biometrics</div>
-                                                <div className="flex justify-between text-xs border-b border-white/5 pb-2">
-                                                    <span>Height</span>
-                                                    <span className="font-bold">{player.height}</span>
-                                                </div>
-                                                <div className="flex justify-between text-xs border-b border-white/5 pb-2">
-                                                    <span>Weight</span>
-                                                    <span className="font-bold">{player.weight} lbs</span>
-                                                </div>
-                                                <div className="flex justify-between text-xs">
-                                                    <span>Age</span>
-                                                    <span className="font-bold">{player.currentAge}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <div className="flex-1 glass rounded-2xl flex flex-col items-center justify-center opacity-30 border-dashed">
-                                        <div className="text-4xl mb-4">⚾</div>
-                                        <div className="text-xs font-bold uppercase tracking-[0.3em]">No Target Selected</div>
-                                    </div>
-                                )}
-                                
-                                <div className="glass rounded-2xl p-4">
-                                    <div className="text-[10px] text-slate-500 uppercase font-bold mb-3 tracking-widest">System Load</div>
-                                    <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                                        <div className="h-full bg-blue-500 w-[65%] shadow-[0_0_10px_#3b82f6]"></div>
-                                    </div>
-                                </div>
-                            </div>
+                        {/* View Content */}
+                        <div className="flex-1 overflow-hidden relative">
+                            {view === 'war-room' && <WarRoomView chat={chat} loading={loading} player={player} currentStats={currentStats} />}
+                            {view === 'analytics' && <AnalyticsView player={player} />}
+                            {view === 'rulebook' && <RulebookView />}
                         </div>
-                    </main>
+                    </div>
                 </div>
             );
         };

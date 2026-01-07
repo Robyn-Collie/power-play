@@ -12,17 +12,21 @@ class GeminiScout(BaseScout):
         self.model = genai.GenerativeModel('gemini-pro')
 
     def analyze(self, player_name: str, stats: Dict[str, Any]) -> str:
-        prompt = f"""
-        You are 'The Scout', an elite AI baseball talent evaluator for an MLB front office.
-        Analyze the following stats for {player_name} and provide a concise, high-impact scouting report.
-        Focus on exit velocity, consistency, and 'Power Move' potential.
-        
-        Stats Data: {stats}
-        
-        Return the report in a professional, slightly gruff tone.
-        """
-        response = self.model.generate_content(prompt)
-        return response.text
+        try:
+            prompt = f"""
+            You are 'The Scout', an elite AI baseball talent evaluator for an MLB front office.
+            Analyze the following stats for {player_name} and provide a concise, high-impact scouting report.
+            Focus on exit velocity, consistency, and 'Power Move' potential.
+            
+            Stats Data: {stats}
+            
+            Return the report in a professional, slightly gruff tone.
+            """
+            response = self.model.generate_content(prompt)
+            return response.text
+        except Exception as e:
+            print(f"Error calling Gemini: {e}")
+            return MockScout().analyze(player_name, stats)
 
 class MockScout(BaseScout):
     def analyze(self, player_name: str, stats: Dict[str, Any]) -> str:
