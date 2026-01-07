@@ -9,7 +9,8 @@ class BaseScout:
 class GeminiScout(BaseScout):
     def __init__(self):
         genai.configure(api_key=settings.GOOGLE_API_KEY)
-        self.model = genai.GenerativeModel('gemini-pro')
+        # Updated to use the available model from user's API access
+        self.model = genai.GenerativeModel('gemini-2.5-flash')
 
     def analyze(self, player_name: str, stats: Dict[str, Any]) -> str:
         try:
