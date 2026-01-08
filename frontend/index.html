@@ -34,7 +34,29 @@
     <div id="root" class="h-full"></div>
 
     <script type="text/babel">
-        const { useState, useEffect, useRef } = React;
+        const { useState, useEffect, useRef, useMemo } = React;
+
+        // --- UTILS ---
+        const calculateFantasyPoints = (s, isPitcher) => {
+            if (!s) return 0;
+            if (isPitcher) {
+                // Std Pitching: IP*3, K*1, W*5, ER*-2, H*-1, BB*-1
+                const ip = parseFloat(s.inningsPitched || 0);
+                const k = parseInt(s.strikeOuts || 0);
+                const w = parseInt(s.wins || 0);
+                const er = parseInt(s.earnedRuns || 0);
+                return (ip * 3) + k + (w * 5) - (er * 2);
+            } else {
+                // Std Hitting: TB, R, RBI, BB, SB, SO(-0.5)
+                const tb = parseInt(s.totalBases || 0);
+                const r = parseInt(s.runs || 0);
+                const rbi = parseInt(s.rbi || 0);
+                const bb = parseInt(s.baseOnBalls || 0);
+                const sb = parseInt(s.stolenBases || 0);
+                const so = parseInt(s.strikeOuts || 0);
+                return tb + r + rbi + bb + (sb * 2) - (so * 0.5);
+            }
+        };
 
         // --- COMPONENTS ---
 
@@ -58,13 +80,13 @@
         const CareerChart = ({ history, isPitcher }) => {
             if (!history || history.length === 0) return <div className="text-xs text-slate-500 p-4">No MLB history available.</div>;
             
-            // Filter for MLB stats only to avoid duplicate bars per year (minors etc)
-            // Filter where sport.abbreviation == 'MLB'
+            // Filter for MLB stats only
             const mlbHistory = history.filter(h => h.sport && h.sport.abbreviation === 'MLB');
             
-            // Deduplicate by year (take the last entry which is usually the total)
+            // Deduplicate by year
             const uniqueHistory = [];
             const years = new Set();
+            // Process in reverse to get latest stint per year if multiple, then reverse back
             mlbHistory.slice().reverse().forEach(h => {
                 if (!years.has(h.season)) {
                     years.add(h.season);
@@ -81,12 +103,11 @@
                     <div className="flex-1 flex items-end gap-1 pt-4 px-2">
                         {uniqueHistory.slice(-15).map((h, i) => {
                             const val = isPitcher ? parseFloat(h.stat.strikeOuts || 0) : parseInt(h.stat.homeRuns || 0);
-                            const height = Math.max((val / maxVal) * 100, 5); // Min 5% height
+                            const height = Math.max((val / maxVal) * 100, 5); 
                             return (
                                 <div key={i} className="flex-1 flex flex-col justify-end group relative min-w-[10px]">
                                     <div className="w-full bg-blue-600/30 hover:bg-blue-500 transition-all rounded-t-sm" style={{height: `${height}%`}}></div>
                                     <div className="text-[8px] text-center mt-1 text-slate-500 font-mono truncate">{h.season.substr(2)}</div>
-                                    {/* Tooltip */}
                                     <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 bg-black text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 whitespace-nowrap z-10 pointer-events-none border border-white/20 shadow-xl">
                                         <span className="font-bold">{h.season}</span>: {val} {isPitcher ? 'SO' : 'HR'}
                                     </div>
@@ -99,8 +120,18 @@
         };
 
         const PlayerDashboard = ({ player, currentStats, careerHistory }) => {
+            const [statsMode, setStatsMode] = useState('season'); // season, career
             const isPitcher = player.primaryPosition.type === 'Pitcher';
-            const s = currentStats?.splits?.[0]?.stat || {};
+            
+            // Find Career Totals
+            const careerTotalStats = useMemo(() => {
+                const groupName = isPitcher ? 'pitching' : 'hitting';
+                return player.allStats.find(s => s.type.displayName === 'career' && s.group.displayName === groupName)?.splits?.[0]?.stat || {};
+            }, [player, isPitcher]);
+
+            // Select Stats based on Mode
+            const s = statsMode === 'season' ? (currentStats?.splits?.[0]?.stat || {}) : careerTotalStats;
+            const fantasyPoints = calculateFantasyPoints(s, isPitcher);
 
             return (
                 <div className="flex flex-col h-full gap-4">
@@ -122,9 +153,10 @@
                                         <span className="text-xs font-bold tracking-widest uppercase text-slate-400">{player.primaryPosition?.name} • {player.currentAge} YRS • {player.height} • {player.weight} LBS</span>
                                     </div>
                                 </div>
-                                <div className="text-right hidden md:block">
-                                    <div className="text-[10px] uppercase font-bold text-slate-500 tracking-widest">Active Status</div>
-                                    <div className="text-green-400 font-mono text-xs">ROSTER_ACTIVE</div>
+                                <div className="text-right">
+                                    <div className="text-[10px] uppercase font-bold text-slate-500 tracking-widest">Fantasy Value</div>
+                                    <div className="text-3xl text-green-400 font-black teko">{fantasyPoints.toFixed(1)}</div>
+                                    <div className="text-[9px] text-slate-600 font-mono uppercase">PTS (Standard)</div>
                                 </div>
                             </div>
                             
@@ -149,10 +181,16 @@
                         </div>
                     </div>
 
+                    {/* View Toggles */}
+                    <div className="flex gap-2">
+                        <button onClick={() => setStatsMode('season')} className={`px-4 py-1 rounded text-xs font-bold uppercase tracking-wider transition-all ${statsMode === 'season' ? 'bg-blue-600 text-white' : 'bg-[#1e293b] text-slate-500 hover:text-white'}`}>Current Season</button>
+                        <button onClick={() => setStatsMode('career')} className={`px-4 py-1 rounded text-xs font-bold uppercase tracking-wider transition-all ${statsMode === 'career' ? 'bg-blue-600 text-white' : 'bg-[#1e293b] text-slate-500 hover:text-white'}`}>Career Totals</button>
+                    </div>
+
                     {/* High Density Grid */}
                     <div className="glass rounded-lg border border-white/10 overflow-hidden">
                         <div className="bg-slate-900/50 px-3 py-1.5 border-b border-white/5 text-[10px] font-bold uppercase tracking-widest text-blue-400">
-                            Season Performance Matrix
+                            {statsMode === 'season' ? '2025 Performance Matrix' : 'Career Performance Matrix'}
                         </div>
                         <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 bg-[#0b0e14]">
                             {isPitcher ? (
@@ -247,14 +285,6 @@
 
             const API_BASE = "http://localhost:8000/api/v1";
 
-            const getPrimaryStats = (statsArray) => {
-                if (!statsArray || statsArray.length === 0) return null;
-                const groupName = player?.primaryPosition?.type === 'Pitcher' ? 'pitching' : 'hitting';
-                // Try to find stats for the current year/season first
-                const season = statsArray.find(s => s.group.displayName === groupName && s.type.displayName === 'season');
-                return season || statsArray[0];
-            };
-
             const runAnalysis = async (p, current) => {
                 try {
                     const res = await fetch(`${API_BASE}/agent/analyze`, {
@@ -281,6 +311,7 @@
 
                     if (searchData.people?.length > 0) {
                         const p = searchData.people[0];
+                        // Request Career stats too
                         const statsRes = await fetch(`${API_BASE}/players/${p.id}/stats`);
                         const statsData = await statsRes.json();
                         
@@ -303,7 +334,7 @@
             };
 
             // Derived State
-            const currentStats = player ? getPrimaryStats(player.allStats) : null;
+            const currentStats = player ? player.allStats.find(s => s.type.displayName === 'season') : null;
             
             // Improved Career History Parsing
             const careerHistory = player ? (() => {
